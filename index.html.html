@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Super Simple QR Code Generator</title>
-    <!-- This is the magic library, loaded from a CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <!-- SWITCHED TO A MORE ROBUST LIBRARY -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -42,10 +42,10 @@
         }
         #input-text:focus {
             outline: none;
-            border-color: #5C67FF; /* Phantom's purple! */
+            border-color: #5C67FF;
         }
         button {
-            background-color: #5C67FF; /* Phantom's purple! */
+            background-color: #5C67FF;
             color: white;
             border: none;
             padding: 12px 24px;
@@ -74,7 +74,7 @@
 <body>
     <div class="container">
         <h1>QR Code Generator</h1>
-        <input type="text" id="input-text" placeholder="Paste or type any URL or text here..." />
+        <input type="text" id="input-text" placeholder="Paste or type any URL or text here..." value="https://v0-customer-review-app.vercel.app/r/zest-bloom" />
         <button onclick="generateQRCode()">Generate QR Code</button>
         <div id="qrcode"></div>
     </div>
@@ -83,7 +83,7 @@
         // This is the JavaScript function that does all the work
         function generateQRCode() {
             // 1. Get the text the user typed
-            const inputText = document.getElementById('input-text').value;
+            const inputText = document.getElementById('input-text').value.trim(); // .trim() removes accidental spaces
 
             // 2. Clear any previous QR code
             document.getElementById('qrcode').innerHTML = '';
@@ -94,16 +94,22 @@
                 return;
             }
 
-            // 4. Generate the QR code!
+            // 4. Generate the QR code with the new library!
             try {
-                new QRCode(document.getElementById('qrcode'), {
-                    text: inputText,
-                    width: 256,   // Size of the QR code
-                    height: 256,
-                    colorDark : "#000000",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.H // Error correction level (High)
-                });
+                // Let's create a QR code with error correction (typeNumber 0 means auto)
+                const typeNumber = 0;
+                const errorCorrectionLevel = 'H'; // High error correction (30%)
+                const qr = qrcode(typeNumber, errorCorrectionLevel);
+                
+                qr.addData(inputText);
+                qr.make();
+
+                // Create an <img> tag and set its source to the QR code image
+                const qrImage = qr.createImgTag(6, 0, "QR Code"); // (cellSize, margin, altText)
+                
+                // Insert the <img> tag into our div
+                document.getElementById('qrcode').innerHTML = qrImage;
+
             } catch (error) {
                 console.error("Error generating QR code:", error);
                 alert("Could not generate a QR code for that input. Please try something else.");
@@ -116,6 +122,9 @@
                 generateQRCode();
             }
         });
+
+        // BONUS BONUS: Generate a QR code automatically when the page loads for the pre-filled URL!
+        window.onload = generateQRCode;
     </script>
 </body>
 </html>
