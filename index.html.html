@@ -3,127 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Simple QR Code Generator</title>
-    <!-- SWITCHED TO A MORE ROBUST LIBRARY -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <title>Review App QR Generator</title>
+    <!-- Using a robust, modern QR library -->
+    <script src="https://unpkg.com/qrcode@1.5.1/build/qrcode.min.js"></script>
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background-color: #f0f2f5;
+            background-color: #f8fafc;
+            color: #334155;
             margin: 0;
             padding: 20px;
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
+            min-height: 100vh;
         }
         .container {
-            background-color: white;
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
             padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
             text-align: center;
-            max-width: 400px;
-            width: 100%;
+            margin-top: 0;
+            color: #1e293b;
+            font-weight: 600;
         }
-        #input-text {
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #475569;
+        }
+        .url-display {
+            background-color: #f1f5f9;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            margin-bottom: 0.5rem;
+            word-break: break-all;
+            color: #64748b;
+        }
+        .url-display span {
+            color: #3b82f6; /* Color for the base URL */
+            font-weight: 500;
+        }
+        #page-slug {
             width: 100%;
-            padding: 12px;
-            margin-bottom: 20px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            box-sizing: border-box;
+            padding: 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
             font-size: 16px;
+            transition: border-color 0.2s;
         }
-        #input-text:focus {
+        #page-slug:focus {
             outline: none;
             border-color: #5C67FF;
+            box-shadow: 0 0 0 3px rgba(92, 103, 255, 0.1);
+        }
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 2rem;
         }
         button {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        #generate-btn {
             background-color: #5C67FF;
             color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-bottom: 25px;
-            width: 100%;
-            font-weight: bold;
         }
-        button:hover {
+        #generate-btn:hover {
             background-color: #4a53d4;
+            transform: translateY(-1px);
+        }
+        #download-btn {
+            background-color: #0ea5e9;
+            color: white;
+            display: none; /* Hidden until a QR code is generated */
+        }
+        #download-btn:hover {
+            background-color: #0284c7;
+            transform: translateY(-1px);
+        }
+        .result-container {
+            text-align: center;
         }
         #qrcode {
-            margin-top: 20px;
-            display: flex;
-            justify-content: center;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            display: inline-block;
         }
         #qrcode img {
+            display: block;
             border: 10px solid white;
             border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .current-url {
+            margin-top: 1rem;
+            padding: 12px;
+            background-color: #f1f5f9;
+            border-radius: 8px;
+            font-size: 14px;
+            word-break: break-all;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>QR Code Generator</h1>
-        <input type="text" id="input-text" placeholder="Paste or type any URL or text here..." value="https://v0-customer-review-app.vercel.app/r/zest-bloom" />
-        <button onclick="generateQRCode()">Generate QR Code</button>
-        <div id="qrcode"></div>
+        <h1>Review App QR Generator</h1>
+        
+        <div class="input-group">
+            <label for="page-slug">Enter Page Slug</label>
+            <div class="url-display">
+                <span>https://v0-customer-review-app.vercel.app/r/</span>
+            </div>
+            <input type="text" id="page-slug" placeholder="e.g., zest-bloom, fresh-picks, urban-stone" value="zest-bloom" />
+        </div>
+
+        <div class="button-group">
+            <button id="generate-btn" onclick="generateQRCode()">Generate QR Code</button>
+            <button id="download-btn" onclick="downloadQRCode()">Download PNG</button>
+        </div>
+
+        <div class="result-container">
+            <div id="qrcode"></div>
+            <div class="current-url" id="current-url"></div>
+        </div>
     </div>
 
     <script>
-        // This is the JavaScript function that does all the work
+        // Define the base URL that never changes
+        const BASE_URL = "https://v0-customer-review-app.vercel.app/r/";
+
         function generateQRCode() {
-            // 1. Get the text the user typed
-            const inputText = document.getElementById('input-text').value.trim(); // .trim() removes accidental spaces
-
-            // 2. Clear any previous QR code
-            document.getElementById('qrcode').innerHTML = '';
-
-            // 3. Check if the input is empty
-            if (inputText === '') {
-                alert("Please enter a URL or some text first!");
+            // 1. Get the slug, trim it, and convert to lowercase (good for URLs)
+            const pageSlug = document.getElementById('page-slug').value.trim().toLowerCase();
+            
+            // 2. Check if the input is empty
+            if (!pageSlug) {
+                alert("Please enter a page slug first! (e.g., 'zest-bloom')");
                 return;
             }
 
-            // 4. Generate the QR code with the new library!
+            // 3. Construct the full URL
+            const fullUrl = BASE_URL + pageSlug;
+            
+            // 4. Display the full URL to the user
+            document.getElementById('current-url').textContent = fullUrl;
+            
+            // 5. Clear any previous QR code
+            const qrElement = document.getElementById('qrcode');
+            qrElement.innerHTML = '';
+            
+            // 6. Generate the new QR code
             try {
-                // Let's create a QR code with error correction (typeNumber 0 means auto)
-                const typeNumber = 0;
-                const errorCorrectionLevel = 'H'; // High error correction (30%)
-                const qr = qrcode(typeNumber, errorCorrectionLevel);
-                
-                qr.addData(inputText);
-                qr.make();
-
-                // Create an <img> tag and set its source to the QR code image
-                const qrImage = qr.createImgTag(6, 0, "QR Code"); // (cellSize, margin, altText)
-                
-                // Insert the <img> tag into our div
-                document.getElementById('qrcode').innerHTML = qrImage;
-
+                QRCode.toCanvas(qrElement, fullUrl, {
+                    width: 256,
+                    margin: 1,
+                    color: {
+                        dark: "#000000",
+                        light: "#ffffff"
+                    },
+                    errorCorrectionLevel: 'H' // High error correction for reliability
+                }, function (error) {
+                    if (error) {
+                        console.error(error);
+                        alert("Error generating QR code. Please try a different slug.");
+                    } else {
+                        // Show the download button once generation is successful
+                        document.getElementById('download-btn').style.display = 'block';
+                    }
+                });
             } catch (error) {
-                console.error("Error generating QR code:", error);
-                alert("Could not generate a QR code for that input. Please try something else.");
+                console.error("Error:", error);
+                alert("Could not generate QR code. Please try again.");
             }
         }
 
-        // Bonus: Generate QR code when user presses "Enter"
-        document.getElementById('input-text').addEventListener('keypress', function(event) {
+        function downloadQRCode() {
+            // Get the canvas element that contains the QR code
+            const canvas = document.querySelector('#qrcode canvas');
+            if (!canvas) {
+                alert("Generate a QR code first!");
+                return;
+            }
+            
+            // Create a temporary link for downloading
+            const link = document.createElement('a');
+            const pageSlug = document.getElementById('page-slug').value.trim().toLowerCase() || 'qrcode';
+            link.download = `qr-${pageSlug}.png`; // e.g., qr-zest-bloom.png
+            link.href = canvas.toDataURL('image/png');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Generate QR code on pressing Enter in the input field
+        document.getElementById('page-slug').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 generateQRCode();
             }
         });
 
-        // BONUS BONUS: Generate a QR code automatically when the page loads for the pre-filled URL!
+        // Automatically generate a QR code when the page loads for the example slug
         window.onload = generateQRCode;
     </script>
 </body>
